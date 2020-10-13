@@ -1,0 +1,31 @@
+ros-noetic-dbw-polaris-can (0.0.4-1focal) focal; urgency=high
+
+  * Add Accel and Gyro reports
+  * Contributors: Sun Hwang
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Mon, 12 Oct 2020 04:00:00 -0000
+
+ros-noetic-dbw-polaris-can (0.0.3-1focal) focal; urgency=high
+
+  * Bump firmware versions
+  * Contributors: Kevin Hallenbeck
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Mon, 17 Aug 2020 04:00:00 -0000
+
+ros-noetic-dbw-polaris-can (0.0.2-1focal) focal; urgency=high
+
+  * Add shift control
+  * Increase CMake minimum version to 3.0.2 to avoid warning about CMP0048
+    http://wiki.ros.org/noetic/Migration#Increase_required_CMake_version_to_avoid_author_warning
+  * Contributors: Kevin Hallenbeck
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Thu, 06 Aug 2020 04:00:00 -0000
+
+ros-noetic-dbw-polaris-can (0.0.1-1focal) focal; urgency=high
+
+  * Initial release (fork of dbw_fca_ros)
+  * Contributors: Kevin Hallenbeck
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Fri, 28 Feb 2020 05:00:00 -0000
+
+
