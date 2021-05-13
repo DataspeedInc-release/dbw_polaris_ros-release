@@ -2,6 +2,25 @@
 Changelog for package dbw_polaris_joystick_demo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2021-05-12)
+------------------
+* Use 'steering_cmd' topic as preferred method of steering calibration
+* Contributors: Kevin Hallenbeck
+
+0.0.8 (2021-03-09)
+------------------
+* Add option to use socketcan hardware
+* Contributors: Kevin Hallenbeck
+
+0.0.7 (2021-01-14)
+------------------
+
+0.0.6 (2020-11-16)
+------------------
+
+0.0.5 (2020-11-04)
+------------------
+
 0.0.4 (2020-10-12)
 ------------------
 
