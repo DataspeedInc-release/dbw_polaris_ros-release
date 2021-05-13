@@ -2,6 +2,41 @@
 Changelog for package dbw_polaris_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2021-05-12)
+------------------
+* Bump firmware versions
+* C++17 and std::clamp()
+* Remove ROS Kinetic support
+* Populate brake/throttle/steering command values even if enable is false
+* Use 'steering_cmd' topic as preferred method of steering calibration
+* Fix socketcan error frame lock up
+* Contributors: Kevin Hallenbeck, Robert Maupin
+
+0.0.8 (2021-03-09)
+------------------
+* Bump firmware versions
+* License multiple features individually
+* Add option to use socketcan hardware
+* Contributors: Kevin Hallenbeck
+
+0.0.7 (2021-01-14)
+------------------
+* Bump firmware versions
+* Update brake type field to match firmware change
+* Add Ford Ranger platform
+* Contributors: Kevin Hallenbeck
+
+0.0.6 (2020-11-16)
+------------------
+* Bump firmware versions
+* Contributors: Kevin Hallenbeck
+
+0.0.5 (2020-11-04)
+------------------
+* Bump firmware versions
+* Add reserved bit to prevent warnings
+* Contributors: Kevin Hallenbeck
+
 0.0.4 (2020-10-12)
 ------------------
 * Add Accel and Gyro reports
