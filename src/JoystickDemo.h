@@ -69,7 +69,6 @@ private:
   ros::Publisher pub_throttle_;
   ros::Publisher pub_steering_;
   ros::Publisher pub_gear_;
-  ros::Publisher pub_steering_cal_;
   ros::Publisher pub_enable_;
   ros::Publisher pub_disable_;
 
