@@ -60,12 +60,12 @@ namespace dbw_polaris_can
 
 // Latest firmware versions
 PlatformMap FIRMWARE_LATEST({
-  {PlatformVersion(P_POLARIS_GEM,  M_TPEC,  ModuleVersion(0,1,0))},
-  {PlatformVersion(P_POLARIS_GEM,  M_STEER, ModuleVersion(0,1,0))},
-  {PlatformVersion(P_POLARIS_GEM,  M_BOO,   ModuleVersion(0,1,0))},
-  {PlatformVersion(P_POLARIS_RZR,  M_TPEC,  ModuleVersion(0,0,1))},
-  {PlatformVersion(P_POLARIS_RZR,  M_STEER, ModuleVersion(0,0,1))},
-  {PlatformVersion(P_POLARIS_RZR,  M_BOO,   ModuleVersion(0,0,1))},
+  {PlatformVersion(P_POLARIS_GEM,  M_TPEC,  ModuleVersion(1,0,0))},
+  {PlatformVersion(P_POLARIS_GEM,  M_STEER, ModuleVersion(1,0,0))},
+  {PlatformVersion(P_POLARIS_GEM,  M_BOO,   ModuleVersion(1,0,0))},
+  {PlatformVersion(P_POLARIS_RZR,  M_TPEC,  ModuleVersion(0,2,2))},
+  {PlatformVersion(P_POLARIS_RZR,  M_STEER, ModuleVersion(0,2,2))},
+  {PlatformVersion(P_POLARIS_RZR,  M_BOO,   ModuleVersion(0,2,2))},
 });
 
 DbwNode::DbwNode(ros::NodeHandle &node, ros::NodeHandle &priv_nh)
@@ -185,12 +185,13 @@ void DbwNode::recvCAN(const can_msgs::Frame::ConstPtr& msg)
           timeoutBrake(ptr->TMOUT, ptr->ENABLED);
           dbw_polaris_msgs::BrakeReport out;
           out.header.stamp = msg->header.stamp;
-          if (ptr->BTYPE == 1) {
+          if (ptr->BTYPE == 2 || ptr->BTYPE == 1) {
+            // Type 1 is for backwards compatibility only
             out.torque_input = ptr->PI;
             out.torque_cmd = ptr->PC;
             out.torque_output = ptr->PO;
           } else {
-            ROS_WARN_THROTTLE(5.0, "Unsupported brake type");
+            ROS_WARN_THROTTLE(5.0, "Unsupported brake report type: %u", ptr->BTYPE);
           }
           out.enabled = ptr->ENABLED ? true : false;
           out.override = ptr->OVERRIDE ? true : false;
@@ -437,15 +438,17 @@ void DbwNode::recvCAN(const can_msgs::Frame::ConstPtr& msg)
               pub_vin_.publish(msg);
               ROS_INFO("Licensing: VIN: %s", vin_.c_str());
             }
-          } else if (ptr->mux == LIC_MUX_F0) {
-            const char * const NAME = "BASE"; // Base functionality
+          } else if ((LIC_MUX_F0 <= ptr->mux) && (ptr->mux <= LIC_MUX_F7)) {
+            constexpr std::array<const char*, 8> NAME = {"BASE","CONTROL","SENSORS","","","","",""};
+            const size_t i = ptr->mux - LIC_MUX_F0;
+            const int id = module * NAME.size() + i;
             if (ptr->license.enabled) {
-              ROS_INFO_ONCE_ID(module, "Licensing: %s feature '%s' enabled%s", str_m, NAME, ptr->license.trial ? " as a counted trial" : "");
+              ROS_INFO_ONCE_ID(id, "Licensing: %s feature '%s' enabled%s", str_m, NAME[i], ptr->license.trial ? " as a counted trial" : "");
             } else if (ptr->ready) {
-              ROS_WARN_ONCE_ID(module, "Licensing: %s feature '%s' not licensed. Visit https://www.dataspeedinc.com/products/maintenance-subscription/ to request a license.", str_m, NAME);
+              ROS_WARN_ONCE_ID(id, "Licensing: %s feature '%s' not licensed. Visit https://www.dataspeedinc.com/products/maintenance-subscription/ to request a license.", str_m, NAME[i]);
             }
             if (ptr->ready && (module == M_STEER) && (ptr->license.trial || !ptr->license.enabled)) {
-              ROS_INFO_ONCE("Licensing: Feature '%s' trials used: %u, remaining: %u", NAME,
+              ROS_INFO_ONCE("Licensing: Feature '%s' trials used: %u, remaining: %u", NAME[i],
                             ptr->license.trials_used, ptr->license.trials_left);
             }
           }
@@ -485,10 +488,12 @@ void DbwNode::recvCAN(const can_msgs::Frame::ConstPtr& msg)
                                   "DBW system: Another node on the CAN bus is commanding the vehicle!!! Subsystem: Throttle. Id: 0x%03X", ID_THROTTLE_CMD);
         break;
       case ID_STEERING_CMD:
-        ROS_WARN_COND(warn_cmds_, "DBW system: Another node on the CAN bus is commanding the vehicle!!! Subsystem: Steering. Id: 0x%03X", ID_STEERING_CMD);
+        ROS_WARN_COND(warn_cmds_ && !((const MsgSteeringCmd*)msg->data.elems)->RES1,
+                                  "DBW system: Another node on the CAN bus is commanding the vehicle!!! Subsystem: Steering. Id: 0x%03X", ID_STEERING_CMD);
         break;
       case ID_GEAR_CMD:
-        ROS_WARN_COND(warn_cmds_, "DBW system: Another node on the CAN bus is commanding the vehicle!!! Subsystem: Shifting. Id: 0x%03X", ID_GEAR_CMD);
+        ROS_WARN_COND(warn_cmds_ && !((const MsgGearCmd*)msg->data.elems)->RES1,
+                                  "DBW system: Another node on the CAN bus is commanding the vehicle!!! Subsystem: Shifting. Id: 0x%03X", ID_GEAR_CMD);
         break;
     }
   }
@@ -563,29 +568,27 @@ void DbwNode::recvBrakeCmd(const dbw_polaris_msgs::BrakeCmd::ConstPtr& msg)
   out.dlc = sizeof(MsgBrakeCmd);
   MsgBrakeCmd *ptr = (MsgBrakeCmd*)out.data.elems;
   memset(ptr, 0x00, sizeof(*ptr));
-  if (enabled()) {
-    switch (msg->pedal_cmd_type) {
-      case dbw_polaris_msgs::BrakeCmd::CMD_NONE:
-        break;
-      case dbw_polaris_msgs::BrakeCmd::CMD_PERCENT:
-        ptr->CMD_TYPE = dbw_polaris_msgs::BrakeCmd::CMD_PERCENT;
-        ptr->PCMD = std::max((float)0.0, std::min((float)UINT16_MAX, msg->pedal_cmd * UINT16_MAX));
-        break;
-      case dbw_polaris_msgs::BrakeCmd::CMD_TORQUE:
-        ptr->CMD_TYPE = dbw_polaris_msgs::BrakeCmd::CMD_TORQUE;
-        ptr->PCMD = std::max((float)0.0, std::min((float)UINT16_MAX, msg->pedal_cmd));
-        break;
-      case dbw_polaris_msgs::BrakeCmd::CMD_TORQUE_RQ:
-        ptr->CMD_TYPE = dbw_polaris_msgs::BrakeCmd::CMD_TORQUE_RQ;
-        ptr->PCMD = std::max((float)0.0, std::min((float)UINT16_MAX, msg->pedal_cmd));
-        break;
-      default:
-        ROS_WARN("Unknown brake command type: %u", msg->pedal_cmd_type);
-        break;
-    }
-    if (msg->enable) {
-      ptr->EN = 1;
-    }
+  switch (msg->pedal_cmd_type) {
+    case dbw_polaris_msgs::BrakeCmd::CMD_NONE:
+      break;
+    case dbw_polaris_msgs::BrakeCmd::CMD_PERCENT:
+      ptr->CMD_TYPE = dbw_polaris_msgs::BrakeCmd::CMD_PERCENT;
+      ptr->PCMD = std::clamp<float>(msg->pedal_cmd * UINT16_MAX, 0, UINT16_MAX);
+      break;
+    case dbw_polaris_msgs::BrakeCmd::CMD_TORQUE:
+      ptr->CMD_TYPE = dbw_polaris_msgs::BrakeCmd::CMD_TORQUE;
+      ptr->PCMD = std::clamp<float>(msg->pedal_cmd, 0, UINT16_MAX);
+      break;
+    case dbw_polaris_msgs::BrakeCmd::CMD_TORQUE_RQ:
+      ptr->CMD_TYPE = dbw_polaris_msgs::BrakeCmd::CMD_TORQUE_RQ;
+      ptr->PCMD = std::clamp<float>(msg->pedal_cmd, 0, UINT16_MAX);
+      break;
+    default:
+      ROS_WARN("Unknown brake command type: %u", msg->pedal_cmd_type);
+      break;
+  }
+  if (enabled() && msg->enable) {
+    ptr->EN = 1;
   }
   if (clear() || msg->clear) {
     ptr->CLEAR = 1;
@@ -605,33 +608,31 @@ void DbwNode::recvThrottleCmd(const dbw_polaris_msgs::ThrottleCmd::ConstPtr& msg
   out.dlc = sizeof(MsgThrottleCmd);
   MsgThrottleCmd *ptr = (MsgThrottleCmd*)out.data.elems;
   memset(ptr, 0x00, sizeof(*ptr));
-  if (enabled()) {
-    bool fwd = !pedal_luts_; // Forward command type, or apply pedal LUTs locally
-    float cmd = 0.0;
-    switch (msg->pedal_cmd_type) {
-      case dbw_polaris_msgs::ThrottleCmd::CMD_NONE:
-        break;
-      case dbw_polaris_msgs::ThrottleCmd::CMD_PEDAL:
-        ptr->CMD_TYPE = dbw_polaris_msgs::ThrottleCmd::CMD_PEDAL;
+  bool fwd = !pedal_luts_; // Forward command type, or apply pedal LUTs locally
+  float cmd = 0.0;
+  switch (msg->pedal_cmd_type) {
+    case dbw_polaris_msgs::ThrottleCmd::CMD_NONE:
+      break;
+    case dbw_polaris_msgs::ThrottleCmd::CMD_PEDAL:
+      ptr->CMD_TYPE = dbw_polaris_msgs::ThrottleCmd::CMD_PEDAL;
+      cmd = msg->pedal_cmd;
+      break;
+    case dbw_polaris_msgs::ThrottleCmd::CMD_PERCENT:
+      if (fwd) {
+        ptr->CMD_TYPE = dbw_polaris_msgs::ThrottleCmd::CMD_PERCENT;
         cmd = msg->pedal_cmd;
-        break;
-      case dbw_polaris_msgs::ThrottleCmd::CMD_PERCENT:
-        if (fwd) {
-          ptr->CMD_TYPE = dbw_polaris_msgs::ThrottleCmd::CMD_PERCENT;
-          cmd = msg->pedal_cmd;
-        } else {
-          ptr->CMD_TYPE = dbw_polaris_msgs::ThrottleCmd::CMD_PEDAL;
-          cmd = throttlePedalFromPercent(msg->pedal_cmd);
-        }
-        break;
-      default:
-        ROS_WARN("Unknown throttle command type: %u", msg->pedal_cmd_type);
-        break;
-    }
-    ptr->PCMD = std::max((float)0.0, std::min((float)UINT16_MAX, cmd * UINT16_MAX));
-    if (msg->enable) {
-      ptr->EN = 1;
-    }
+      } else {
+        ptr->CMD_TYPE = dbw_polaris_msgs::ThrottleCmd::CMD_PEDAL;
+        cmd = throttlePedalFromPercent(msg->pedal_cmd);
+      }
+      break;
+    default:
+      ROS_WARN("Unknown throttle command type: %u", msg->pedal_cmd_type);
+      break;
+  }
+  ptr->PCMD = std::clamp<float>(cmd * UINT16_MAX, 0, UINT16_MAX);
+  if (enabled() && msg->enable) {
+    ptr->EN = 1;
   }
   if (clear() || msg->clear) {
     ptr->CLEAR = 1;
@@ -651,26 +652,24 @@ void DbwNode::recvSteeringCmd(const dbw_polaris_msgs::SteeringCmd::ConstPtr& msg
   out.dlc = sizeof(MsgSteeringCmd);
   MsgSteeringCmd *ptr = (MsgSteeringCmd*)out.data.elems;
   memset(ptr, 0x00, sizeof(*ptr));
-  if (enabled()) {
-    switch (msg->cmd_type) {
-      case dbw_polaris_msgs::SteeringCmd::CMD_ANGLE:
-        ptr->SCMD = std::max((float)-INT16_MAX, std::min((float)INT16_MAX, (float)(msg->steering_wheel_angle_cmd * (180 / M_PI * 10))));
-        if (fabsf(msg->steering_wheel_angle_velocity) > 0) {
-          ptr->SVEL = std::max((float)1, std::min((float)254, (float)roundf(fabsf(msg->steering_wheel_angle_velocity) * 180 / M_PI / 4)));
-        }
-        ptr->CMD_TYPE = dbw_polaris_msgs::SteeringCmd::CMD_ANGLE;
-        break;
-      case dbw_polaris_msgs::SteeringCmd::CMD_TORQUE:
-        ptr->SCMD = std::max((float)-INT16_MAX, std::min((float)INT16_MAX, (float)(msg->steering_wheel_torque_cmd * 128)));
-        ptr->CMD_TYPE = dbw_polaris_msgs::SteeringCmd::CMD_TORQUE;
-        break;
-      default:
-        ROS_WARN("Unknown steering command type: %u", msg->cmd_type);
-        break;
-    }
-    if (msg->enable) {
-      ptr->EN = 1;
-    }
+  switch (msg->cmd_type) {
+    case dbw_polaris_msgs::SteeringCmd::CMD_ANGLE:
+      ptr->SCMD = std::clamp<float>(msg->steering_wheel_angle_cmd * (float)(180 / M_PI * 10), -INT16_MAX, INT16_MAX);
+      if (fabsf(msg->steering_wheel_angle_velocity) > 0) {
+        ptr->SVEL = std::clamp<float>(roundf(fabsf(msg->steering_wheel_angle_velocity) * (float)(180 / M_PI / 4)), 1, 254);
+      }
+      ptr->CMD_TYPE = dbw_polaris_msgs::SteeringCmd::CMD_ANGLE;
+      break;
+    case dbw_polaris_msgs::SteeringCmd::CMD_TORQUE:
+      ptr->SCMD = std::clamp<float>(msg->steering_wheel_torque_cmd * 128, -INT16_MAX, INT16_MAX);
+      ptr->CMD_TYPE = dbw_polaris_msgs::SteeringCmd::CMD_TORQUE;
+      break;
+    default:
+      ROS_WARN("Unknown steering command type: %u", msg->cmd_type);
+      break;
+  }
+  if (enabled() && msg->enable) {
+    ptr->EN = 1;
   }
   if (clear() || msg->clear) {
     ptr->CLEAR = 1;
@@ -707,6 +706,11 @@ void DbwNode::recvGearCmd(const dbw_polaris_msgs::GearCmd::ConstPtr& msg)
 
 void DbwNode::recvCalibrateSteering(const std_msgs::Empty::ConstPtr& msg)
 {
+  /* Send steering command to save current angle as zero.
+   * The preferred method is to set the 'calibrate' field in a ROS steering
+   * command so that recvSteeringCmd() saves the current angle as the
+   * specified command.
+   */
   can_msgs::Frame out;
   out.id = ID_STEERING_CMD;
   out.is_extended = false;
