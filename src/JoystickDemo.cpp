@@ -86,7 +86,6 @@ JoystickDemo::JoystickDemo(ros::NodeHandle &node, ros::NodeHandle &priv_nh) : co
   }
   if (steer_) {
     pub_steering_ = node.advertise<dbw_polaris_msgs::SteeringCmd>("steering_cmd", 1);
-    pub_steering_cal_ = node.advertise<std_msgs::Empty>("calibrate_steering", 1);
   }
   if (shift_) {
     pub_gear_ = node.advertise<dbw_polaris_msgs::GearCmd>("gear_cmd", 1);
@@ -142,6 +141,7 @@ void JoystickDemo::cmdCallback(const ros::TimerEvent& event)
     msg.enable = true;
     msg.ignore = ignore_;
     msg.count = counter_;
+    msg.calibrate = data_.steering_cal;
     if (!strq_) {
       msg.cmd_type = dbw_polaris_msgs::SteeringCmd::CMD_ANGLE;
 
@@ -171,15 +171,6 @@ void JoystickDemo::cmdCallback(const ros::TimerEvent& event)
       dbw_polaris_msgs::GearCmd msg;
       msg.cmd.gear = data_.gear_cmd;
       pub_gear_.publish(msg);
-    }
-  }
-
-  // Steering calibration
-  if (steer_) {
-    // Only calibrate on 'rising edge' of button based steer cal request
-    static bool steering_cal_last = false;
-    if (data_.steering_cal && !steering_cal_last) {
-      pub_steering_cal_.publish(std_msgs::Empty());
     }
   }
 }
