@@ -2,6 +2,14 @@
 Changelog for package dbw_polaris_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.1 (2021-09-20)
+------------------
+* Bump firmware versions
+* Add reserved bits
+* Improve printing of license info
+* Add user control of alert
+* Contributors: Kevin Hallenbeck
+
 1.0.0 (2021-05-12)
 ------------------
 * Bump firmware versions
