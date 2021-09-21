@@ -2,6 +2,11 @@
 Changelog for package dbw_polaris_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.1 (2021-09-20)
+------------------
+* Add user control of alert
+* Contributors: Kevin Hallenbeck
+
 1.0.0 (2021-05-12)
 ------------------
 * Increase steering wheel command maximum angle to 600 degrees
