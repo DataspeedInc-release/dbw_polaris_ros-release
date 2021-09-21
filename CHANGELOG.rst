@@ -2,6 +2,9 @@
 Changelog for package dbw_polaris_joystick_demo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.1 (2021-09-20)
+------------------
+
 1.0.0 (2021-05-12)
 ------------------
 * Use 'steering_cmd' topic as preferred method of steering calibration
