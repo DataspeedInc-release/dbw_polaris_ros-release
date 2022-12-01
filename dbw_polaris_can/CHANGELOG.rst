@@ -2,6 +2,18 @@
 Changelog for package dbw_polaris_can
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2022-11-30)
+------------------
+* Bump firmware versions
+* Change unsigned vehicle speed to signed vehicle velocity
+* Periodically publish DBW enabled status in addition to latched and on change
+* Contributors: Kevin Hallenbeck
+
+1.0.2 (2022-03-08)
+------------------
+* Bump firmware versions
+* Contributors: Kevin Hallenbeck
+
 1.0.1 (2021-09-20)
 ------------------
 * Bump firmware versions
