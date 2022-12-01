@@ -1,0 +1,79 @@
+ros-noetic-dbw-polaris-msgs (1.1.0-1focal) focal; urgency=high
+
+
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Wed, 30 Nov 2022 05:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (1.0.2-1focal) focal; urgency=high
+
+
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Tue, 08 Mar 2022 05:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (1.0.1-1focal) focal; urgency=high
+
+  * Add user control of alert
+  * Contributors: Kevin Hallenbeck
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Mon, 20 Sep 2021 04:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (1.0.0-1focal) focal; urgency=high
+
+  * Increase steering wheel command maximum angle to 600 degrees
+  * Contributors: Kevin Hallenbeck
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Wed, 12 May 2021 04:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (0.0.8-1focal) focal; urgency=high
+
+
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Tue, 09 Mar 2021 05:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (0.0.7-1focal) focal; urgency=high
+
+
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Thu, 14 Jan 2021 05:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (0.0.6-1focal) focal; urgency=high
+
+
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Mon, 16 Nov 2020 05:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (0.0.5-1focal) focal; urgency=high
+
+
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Wed, 04 Nov 2020 05:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (0.0.4-1focal) focal; urgency=high
+
+
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Mon, 12 Oct 2020 04:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (0.0.3-1focal) focal; urgency=high
+
+
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Mon, 17 Aug 2020 04:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (0.0.2-1focal) focal; urgency=high
+
+  * Add shift control
+  * Increase CMake minimum version to 3.0.2 to avoid warning about CMP0048
+    http://wiki.ros.org/noetic/Migration#Increase_required_CMake_version_to_avoid_author_warning
+  * Contributors: Kevin Hallenbeck
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Thu, 06 Aug 2020 04:00:00 -0000
+
+ros-noetic-dbw-polaris-msgs (0.0.1-1focal) focal; urgency=high
+
+  * Initial release (fork of dbw_fca_ros)
+  * Contributors: Kevin Hallenbeck
+
+ -- Kevin Hallenbeck <khallenbeck@dataspeedinc.com>  Fri, 28 Feb 2020 05:00:00 -0000
+
+
