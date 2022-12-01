@@ -2,6 +2,14 @@
 Changelog for package dbw_polaris
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2022-11-30)
+------------------
+* Fix ROS install key after they changed it
+* Contributors: Kevin Hallenbeck
+
+1.0.2 (2022-03-08)
+------------------
+
 1.0.1 (2021-09-20)
 ------------------
 
