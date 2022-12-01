@@ -1,0 +1,13 @@
+Source: ros-melodic-dbw-polaris
+Section: misc
+Priority: optional
+Maintainer: Kevin Hallenbeck <khallenbeck@dataspeedinc.com>
+Build-Depends: debhelper (>= 9.0.0), ros-melodic-catkin
+Homepage: http://dataspeedinc.com
+Standards-Version: 3.9.2
+
+Package: ros-melodic-dbw-polaris
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-melodic-dbw-polaris-can, ros-melodic-dbw-polaris-description, ros-melodic-dbw-polaris-joystick-demo, ros-melodic-dbw-polaris-msgs
+Description: Drive-by-wire interface to the Dataspeed Inc.
+ Polaris GEM/Ranger/RZR DBW kit
